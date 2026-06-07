@@ -31,7 +31,7 @@ app.add_middleware(
 # Servir frontend estático
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
-    app.mount("/static", StaticFiles(directory=os.path.join(frontend_path, "static")), name="static")
+    app.mount("/frontend", StaticFiles(directory=frontend_path), name="frontend")
 
 # Estado de jobs activos
 active_jobs: Dict[str, dict] = {}
