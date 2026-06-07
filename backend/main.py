@@ -15,9 +15,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 
-from nesting import NestingEngine
-from svg_parser import SVGParser
-from image_exporter import ImageExporter
+from backend.nesting import NestingEngine
+from backend.svg_parser import SVGParser
+from backend.image_exporter import ImageExporter
 
 app = FastAPI(title="Tizada Automática IFK Sports")
 
