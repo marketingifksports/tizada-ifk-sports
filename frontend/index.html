@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tizada Automática - IFK Sports</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #1a1a2e;
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header span { font-size: 13px; color: #8899aa; }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+
+  .card h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .step-badge {
+    background: #1a1a2e;
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Drop zone */
+  .dropzone {
+    border: 2px dashed #ccd;
+    border-radius: 10px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fafbff;
+  }
+  .dropzone:hover, .dropzone.drag-over {
+    border-color: #4a90d9;
+    background: #f0f6ff;
+  }
+  .dropzone svg { color: #8899aa; margin-bottom: 12px; }
+  .dropzone p { color: #667; font-size: 15px; }
+  .dropzone small { color: #9aa; font-size: 13px; }
+  #file-input { display: none; }
+
+  /* Config grid */
+  .config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #667;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #dde;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1a1a2e;
+    background: white;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: #4a90d9;
+  }
+
+  /* Piezas table */
+  .piezas-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 80px 80px 90px;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #f5f6fa;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #667;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .pieza-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 80px 80px 90px;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1.5px solid #eef;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+    background: white;
+    transition: border-color 0.2s;
+  }
+  .pieza-row:hover { border-color: #4a90d9; }
+
+  .pieza-row input[type=text] {
+    border: 1px solid #dde;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 100%;
+  }
+  .pieza-row input[type=text]:focus {
+    outline: none;
+    border-color: #4a90d9;
+  }
+  .pieza-row input[type=number] {
+    border: 1px solid #dde;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
+  }
+  .pieza-row input[type=number]:focus {
+    outline: none;
+    border-color: #4a90d9;
+  }
+
+  .dim-badge {
+    font-size: 11px;
+    color: #8899aa;
+    white-space: nowrap;
+  }
+
+  .status-ok { color: #2ecc71; font-size: 18px; }
+  .status-error { color: #e74c3c; font-size: 18px; }
+
+  /* Botón */
+  .btn-primary {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-primary:hover:not(:disabled) { background: #27ae60; }
+  .btn-primary:active:not(:disabled) { transform: scale(0.99); }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* Progress */
+  .progress-wrap {
+    margin-top: 20px;
+    display: none;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-bar-outer {
+    background: #eef;
+    border-radius: 100px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-bar-inner {
+    background: #4a90d9;
+    height: 100%;
+    border-radius: 100px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-msg {
+    font-size: 13px;
+    color: #667;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-pct { font-weight: 700; color: #1a1a2e; }
+
+  /* Resultados */
+  .resultados {
+    display: none;
+    margin-top: 16px;
+  }
+  .resultados.visible { display: block; }
+
+  .resultado-header {
+    background: #f0fff4;
+    border: 1.5px solid #2ecc71;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .resultado-stat { text-align: center; }
+  .resultado-stat .valor {
+    font-size: 28px;
+    font-weight: 800;
+    color: #27ae60;
+  }
+  .resultado-stat .etiqueta {
+    font-size: 11px;
+    color: #667;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .archivos-lista { display: flex; flex-direction: column; gap: 10px; }
+  .archivo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1.5px solid #dde;
+    border-radius: 8px;
+    background: #fafbff;
+  }
+  .archivo-nombre { flex: 1; font-size: 14px; font-weight: 500; }
+  .archivo-metros { font-size: 12px; color: #8899aa; }
+  .btn-download {
+    background: #4a90d9;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-download:hover { background: #357abd; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px;
+    color: #9aa;
+  }
+  .empty-state svg { margin-bottom: 12px; }
+
+  .error-msg {
+    background: #fff0f0;
+    border: 1.5px solid #e74c3c;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #c0392b;
+    font-size: 14px;
+    margin-top: 12px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  @media (max-width: 700px) {
+    .piezas-header, .pieza-row {
+      grid-template-columns: 1fr 1fr;
+    }
+    .piezas-header .col-dim,
+    .piezas-header .col-ok,
+    .pieza-row .col-dim,
+    .pieza-row .col-ok { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Tizada Automática</h1>
+    <span>IFK Sports — True Shape Nesting</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- PASO 1: Subir SVGs -->
+  <div class="card">
+    <h2>
+      <div class="step-badge">1</div>
+      Subir archivos SVG
+    </h2>
+
+    <div class="dropzone" id="dropzone">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
+      <p>Arrastrá tus SVGs acá o <strong>hacé clic para buscar</strong></p>
+      <small>Podés subir múltiples archivos a la vez · Exportados desde Illustrator</small>
+    </div>
+    <input type="file" id="file-input" multiple accept=".svg">
+
+    <div id="piezas-section" style="display:none; margin-top: 24px;">
+      <div class="piezas-header">
+        <div>Archivo</div>
+        <div>Nombre pieza</div>
+        <div>Talle</div>
+        <div class="col-dim">Dimensiones</div>
+        <div>Cantidad</div>
+        <div class="col-ok">Estado</div>
+      </div>
+      <div id="piezas-lista"></div>
+    </div>
+  </div>
+
+  <!-- PASO 2: Configuración -->
+  <div class="card">
+    <h2>
+      <div class="step-badge">2</div>
+      Configuración
+    </h2>
+    <div class="config-grid">
+      <div class="field">
+        <label>Ancho del rollo (cm)</label>
+        <input type="number" id="ancho-rollo" value="160" min="50" max="320" step="1">
+      </div>
+      <div class="field">
+        <label>Largo máximo por hoja (m)</label>
+        <input type="number" id="largo-max" value="3.5" min="1" max="50" step="0.5">
+      </div>
+      <div class="field">
+        <label>Espacio entre piezas (mm)</label>
+        <input type="number" id="espacio-mm" value="7" min="2" max="30" step="1">
+      </div>
+      <div class="field">
+        <label>Perfil de color</label>
+        <select id="perfil-color">
+          <option value="Adobe RGB (1998)">Adobe RGB (1998)</option>
+          <option value="sRGB">sRGB IEC 61966-2.1</option>
+          <option value="Coated FOGRA39">Coated FOGRA39</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: Generar -->
+  <div class="card">
+    <h2>
+      <div class="step-badge">3</div>
+      Generar tizada
+    </h2>
+
+    <button class="btn-primary" id="btn-generar" onclick="generarTizada()" disabled>
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+      </svg>
+      GENERAR TIZADA
+    </button>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progress-bar"></div>
+      </div>
+      <div class="progress-msg">
+        <span id="progress-msg-text">Iniciando...</span>
+        <span class="progress-pct" id="progress-pct">0%</span>
+      </div>
+    </div>
+
+    <div class="resultados" id="resultados">
+      <div class="resultado-header" id="resultado-header"></div>
+      <div class="archivos-lista" id="archivos-lista"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Estado global
+let piezasData = [];
+let jobId = null;
+let ws = null;
+
+// ---- UPLOAD ----
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  procesarArchivos(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', (e) => procesarArchivos(e.target.files));
+
+async function procesarArchivos(files) {
+  if (!files || files.length === 0) return;
+
+  dropzone.innerHTML = `<p style="color:#4a90d9;font-weight:600">Analizando ${files.length} archivo(s)...</p>`;
+
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append('files', file);
+  }
+
+  try {
+    const resp = await fetch('/api/parse-svgs', { method: 'POST', body: formData });
+    const data = await resp.json();
+    piezasData = data.piezas;
+    renderizarPiezas(data.piezas);
+  } catch (e) {
+    mostrarError('Error al subir archivos: ' + e.message);
+    resetDropzone();
+  }
+}
+
+function resetDropzone() {
+  dropzone.innerHTML = `
+    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+    </svg>
+    <p>Arrastrá tus SVGs acá o <strong>hacé clic para buscar</strong></p>
+    <small>Podés subir múltiples archivos a la vez · Exportados desde Illustrator</small>
+  `;
+}
+
+function renderizarPiezas(piezas) {
+  dropzone.innerHTML = `<p style="color:#27ae60;font-weight:600">✓ ${piezas.length} archivo(s) cargados</p>
+    <small style="cursor:pointer;color:#4a90d9" onclick="document.getElementById('file-input').click()">Agregar más archivos</small>`;
+
+  const section = document.getElementById('piezas-section');
+  const lista = document.getElementById('piezas-lista');
+  section.style.display = 'block';
+  lista.innerHTML = '';
+
+  piezas.forEach((pieza, idx) => {
+    const div = document.createElement('div');
+    div.className = 'pieza-row';
+    div.innerHTML = `
+      <div style="font-size:12px;color:#667;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${pieza.filename}">${pieza.filename || '—'}</div>
+      <div><input type="text" value="${pieza.nombre_sugerido || ''}" placeholder="Nombre" data-idx="${idx}" data-field="nombre" oninput="actualizarPieza(this)"></div>
+      <div><input type="text" value="${pieza.talle_sugerido || ''}" placeholder="Talle" data-idx="${idx}" data-field="talle" oninput="actualizarPieza(this)"></div>
+      <div class="col-dim dim-badge">${pieza.ancho_mm ? `${pieza.ancho_mm}×${pieza.alto_mm} mm` : '—'}</div>
+      <div><input type="number" value="0" min="0" max="999" data-idx="${idx}" data-field="cantidad" oninput="actualizarPieza(this)" style="font-size:16px;font-weight:700"></div>
+      <div class="col-ok">${pieza.error ? '<span class="status-error" title="' + pieza.error + '">✗</span>' : '<span class="status-ok">✓</span>'}</div>
+    `;
+    lista.appendChild(div);
+  });
+
+  document.getElementById('btn-generar').disabled = false;
+}
+
+function actualizarPieza(input) {
+  const idx = parseInt(input.dataset.idx);
+  const field = input.dataset.field;
+  piezasData[idx][field] = field === 'cantidad' ? parseInt(input.value) || 0 : input.value;
+}
+
+// ---- GENERAR ----
+
+async function generarTizada() {
+  const piezasConCantidad = piezasData.filter(p => (p.cantidad || 0) > 0);
+  if (piezasConCantidad.length === 0) {
+    mostrarError('Ingresá al menos una cantidad mayor a 0.');
+    return;
+  }
+
+  ocultarError();
+  document.getElementById('btn-generar').disabled = true;
+  document.getElementById('progress-wrap').classList.add('visible');
+  document.getElementById('resultados').classList.remove('visible');
+  actualizarProgreso(0, 'Iniciando...');
+
+  const payload = {
+    piezas: piezasData.map(p => ({
+      filename: p.filename,
+      nombre: p.nombre_sugerido || '',
+      talle: p.talle_sugerido || '',
+      cantidad: p.cantidad || 0,
+      svg_data: p.svg_data || '',
+    })),
+    ancho_rollo_mm: parseFloat(document.getElementById('ancho-rollo').value) * 10,
+    largo_max_mm: parseFloat(document.getElementById('largo-max').value) * 1000,
+    espacio_mm: parseFloat(document.getElementById('espacio-mm').value),
+    perfil_color: document.getElementById('perfil-color').value,
+  };
+
+  try {
+    const resp = await fetch('/api/iniciar-tizada', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    jobId = data.job_id;
+    conectarWebSocket(jobId);
+  } catch (e) {
+    mostrarError('Error al iniciar: ' + e.message);
+    document.getElementById('btn-generar').disabled = false;
+  }
+}
+
+function conectarWebSocket(jid) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws/${jid}`);
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    actualizarProgreso(data.progreso || 0, data.mensaje || '');
+
+    if (data.metros_total) {
+      mostrarMetros(data.metros_total, data.n_hojas);
+    }
+
+    if (data.status === 'completado') {
+      mostrarResultados(data);
+      document.getElementById('btn-generar').disabled = false;
+      ws.close();
+    } else if (data.status === 'error') {
+      mostrarError('Error: ' + (data.error || 'Error desconocido'));
+      document.getElementById('btn-generar').disabled = false;
+      ws.close();
+    }
+  };
+
+  ws.onerror = () => {
+    // Fallback: polling
+    setTimeout(() => pollJob(jid), 2000);
+  };
+}
+
+async function pollJob(jid) {
+  try {
+    const resp = await fetch(`/api/job/${jid}`);
+    const data = await resp.json();
+    actualizarProgreso(data.progreso || 0, data.mensaje || '');
+    
+    if (data.status === 'completado') {
+      mostrarResultados(data);
+      document.getElementById('btn-generar').disabled = false;
+    } else if (data.status === 'error') {
+      mostrarError('Error: ' + (data.error || 'Error desconocido'));
+      document.getElementById('btn-generar').disabled = false;
+    } else {
+      setTimeout(() => pollJob(jid), 1500);
+    }
+  } catch (e) {
+    setTimeout(() => pollJob(jid), 2000);
+  }
+}
+
+// ---- UI ----
+
+function actualizarProgreso(pct, msg) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = Math.round(pct) + '%';
+  document.getElementById('progress-msg-text').textContent = msg;
+}
+
+function mostrarMetros(metros, nHojas) {
+  // Mostrar preview del resultado antes de que termine
+}
+
+function mostrarResultados(data) {
+  actualizarProgreso(100, '¡Tizada lista!');
+  
+  const resultados = document.getElementById('resultados');
+  resultados.classList.add('visible');
+
+  const header = document.getElementById('resultado-header');
+  header.innerHTML = `
+    <div class="resultado-stat">
+      <div class="valor">${data.metros_total || '—'}</div>
+      <div class="etiqueta">Metros de tela</div>
+    </div>
+    <div class="resultado-stat">
+      <div class="valor">${data.n_hojas || '—'}</div>
+      <div class="etiqueta">Archivo(s) JPG</div>
+    </div>
+    <div class="resultado-stat">
+      <div class="valor">300</div>
+      <div class="etiqueta">DPI</div>
+    </div>
+    <div class="resultado-stat">
+      <div class="valor" style="font-size:16px">${document.getElementById('perfil-color').value}</div>
+      <div class="etiqueta">Perfil de color</div>
+    </div>
+  `;
+
+  const lista = document.getElementById('archivos-lista');
+  lista.innerHTML = '';
+  (data.archivos || []).forEach(arch => {
+    const div = document.createElement('div');
+    div.className = 'archivo-item';
+    div.innerHTML = `
+      <svg width="20" height="20" fill="none" stroke="#4a90d9" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+      </svg>
+      <span class="archivo-nombre">${arch.nombre}</span>
+      <span class="archivo-metros">${arch.metros} m</span>
+      <button class="btn-download" onclick="descargar('${arch.nombre}')">↓ Descargar</button>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+async function descargar(nombre) {
+  const url = `/api/descargar/${jobId}/${nombre}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  a.click();
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function ocultarError() {
+  document.getElementById('error-msg').classList.remove('visible');
+}
+</script>
+</body>
+</html>
