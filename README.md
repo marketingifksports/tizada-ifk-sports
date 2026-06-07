@@ -1,4 +1,4 @@
-# Tizada Automática IFK Sports
+# Tizada  Automática IFK Sports
 
 Sistema de true shape nesting para sublimación deportiva.
 
